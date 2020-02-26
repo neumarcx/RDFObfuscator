@@ -18,6 +18,8 @@ import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 
 public class RDFObfuscator {
+	
+	static long random;
 
 	public static void main(String[] args) {
 		
@@ -25,7 +27,9 @@ public class RDFObfuscator {
 			System.err.println("Not enough arguments received.\n"+"usage: RDFObfuscator InputFile OutputFile Fileformat. example: java -jar RDFObfuscator FileName.ttl FileNameObfuscated.ttl TTL"); 
 			System.exit(0); 			
 		}
-		
+	        
+		random = System.currentTimeMillis();
+
 			
 		Model m = RDFDataMgr.loadModel(args[0]);
 		Model mObfuscated = ModelFactory.createDefaultModel();
@@ -83,7 +87,7 @@ public class RDFObfuscator {
         StringBuilder strbuilder = new StringBuilder();
 		try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update((System.currentTimeMillis()+strOb).getBytes());
+            md.update((random+strOb).getBytes());
 	    byte[] bytes = md.digest();
             for(int i=0; i< bytes.length ;i++)
             {
