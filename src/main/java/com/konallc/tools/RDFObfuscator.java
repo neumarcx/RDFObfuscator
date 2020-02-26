@@ -83,8 +83,8 @@ public class RDFObfuscator {
         StringBuilder strbuilder = new StringBuilder();
 		try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(strOb.getBytes());
-            byte[] bytes = md.digest();
+            md.update((System.currentTimeMillis()+strOb).getBytes());
+	    byte[] bytes = md.digest();
             for(int i=0; i< bytes.length ;i++)
             {
                 strbuilder.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
