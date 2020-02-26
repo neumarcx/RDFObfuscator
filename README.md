@@ -1,6 +1,7 @@
 # RDFObfuscator
 
-build: 
+build:
+
  mvn clean install
 
 execute:
