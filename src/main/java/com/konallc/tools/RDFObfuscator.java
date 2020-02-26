@@ -3,6 +3,7 @@ package com.konallc.tools;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
@@ -14,6 +15,8 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RiotNotFoundException;
+import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 
@@ -29,9 +32,15 @@ public class RDFObfuscator {
 		}
 	        
 		random = System.currentTimeMillis();
-
 			
-		Model m = RDFDataMgr.loadModel(args[0]);
+		Model m = ModelFactory.createDefaultModel();
+		
+		try {
+			m = RDFDataMgr.loadModel(args[0]);
+		}catch(RiotNotFoundException ex) {
+			System.out.println(ex.getMessage());
+		}
+		
 		Model mObfuscated = ModelFactory.createDefaultModel();
 		boolean obfuscateFull = false;
 
