@@ -59,7 +59,7 @@ public class RDFObfuscator {
 			targetFilename = "";
 		}
 		
-		if(argsMap.containsKey("synatx")) {
+		if(argsMap.containsKey("syntax")) {
 			fileSynatx = argsMap.get("syntax");
 		}else {
 			fileSynatx = "TTL";
