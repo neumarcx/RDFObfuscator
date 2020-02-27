@@ -2,11 +2,11 @@ package com.konallc.tools;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -16,23 +16,55 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RiotNotFoundException;
-import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 
 public class RDFObfuscator {
 	
 	static long random;
-
+	static String urlStringBase;
+	static String targetFilename;
+	static String fileSynatx;
+	
 	public static void main(String[] args) {
-		
+					
 		if (args.length < 1) { 
-			System.err.println("Not enough arguments received.\n"+"usage: RDFObfuscator InputFile OutputFile Fileformat. example: java -jar RDFObfuscator FileName.ttl FileNameObfuscated.ttl TTL"); 
+			System.err.println("Not enough arguments received.\n"+"usage: RDFObfuscator InputFile OutputFile Fileformat. examples:\n"
+					+ "java -jar RDFObfuscator FileName.ttl\n"
+					+ "java -jar RDFObfuscator FileName.ttl target=FileNameObfuscated.ttl syntax=TTL\n"
+					+ "java -jar RDFObfuscator FileName.ttl target=FileNameObfuscated.ttl syntax=TTL urlStringBase=http://ex.com/a_\\n"); 
 			System.exit(0); 			
 		}
+		
+		Map<String, String> argsMap = new HashMap<>();
+		for (String arg: args) {
+		    String[] options = arg.split("=");
+			if(options.length>1) {
+				argsMap.put(options[0], options[1]);
+			}
+		} 
 	        
 		random = System.currentTimeMillis();
-			
+		
+		if(argsMap.containsKey("urlStringBase")) {
+			urlStringBase = argsMap.get("urlStringBase");
+		}else {
+			urlStringBase = "";
+		}
+
+		if(argsMap.containsKey("target")) {
+			targetFilename = argsMap.get("target");
+		}else {
+			targetFilename = "";
+		}
+		
+		if(argsMap.containsKey("synatx")) {
+			fileSynatx = argsMap.get("syntax");
+		}else {
+			fileSynatx = "TTL";
+		}
+		
 		Model m = ModelFactory.createDefaultModel();
 		
 		try {
@@ -42,6 +74,7 @@ public class RDFObfuscator {
 		}
 		
 		Model mObfuscated = ModelFactory.createDefaultModel();
+		
 		boolean obfuscateFull = false;
 
 		Iterator<Statement> iter = m.listStatements();
@@ -56,35 +89,40 @@ public class RDFObfuscator {
 			Resource newsubject;
 			Property newproperty;
 			
-			if(obfuscateFull || !((subject.getNameSpace().equals(RDF.getURI())) || (subject.getNameSpace().equals(OWL.getURI())))) {
-				newsubject = mObfuscated.createResource(obfuscate(subject.toString())); 
+			//Subject obfuscation
+			
+			if(obfuscateFull || !((subject.getNameSpace().equals(RDFS.getURI())) || (subject.getNameSpace().equals(RDF.getURI())) || (subject.getNameSpace().equals(OWL.getURI())))) {
+				newsubject = mObfuscated.createResource(urlStringBase+obfuscate(subject.toString())); 
 			}else {
 				newsubject = subject;
 			}
-			if(obfuscateFull || !((predicate.getNameSpace().equals(RDF.getURI())) || (predicate.getNameSpace().equals(OWL.getURI())))  ) {
-				newproperty = mObfuscated.createProperty(obfuscate(predicate.toString()));
+			
+			//Predicate obfuscation
+			
+			if(obfuscateFull || !( (predicate.getNameSpace().equals(RDFS.getURI())) || (predicate.getNameSpace().equals(RDF.getURI())) || (predicate.getNameSpace().equals(OWL.getURI())))  ) {
+				newproperty = mObfuscated.createProperty(urlStringBase+obfuscate(predicate.toString()));
 			} else {
 				newproperty = predicate;
 			}
 			
+			//Object obfuscation
 			if(node.isLiteral()) {nodenew = mObfuscated.createLiteral(obfuscate(node.asLiteral().toString()));}
 			else{
-				if(obfuscateFull || !( ((Resource)node).getNameSpace().equals(RDF.getURI())) || (((Resource)node).getNameSpace().equals(OWL.getURI())) ) {
-					nodenew = mObfuscated.createResource(obfuscate(node.toString())); 
+				if(obfuscateFull || !( ((Resource)node).getNameSpace().equals(RDFS.getURI()) || ((Resource)node).getNameSpace().equals(RDF.getURI()) || ((Resource)node).getNameSpace().equals(OWL.getURI()) )) {
+					nodenew = mObfuscated.createResource(urlStringBase+obfuscate(node.toString())); 
 				} else {
 					nodenew = stmt.getObject();
-				}
-			Statement  stmtnew = mObfuscated.createStatement(newsubject,newproperty,nodenew ) ;
-			
-			mObfuscated.add(stmtnew );
+				}				
 		}
 		
-		if (args.length < 2) {mObfuscated.write(System.out,"TTL");}
+		Statement  stmtnew = mObfuscated.createStatement(newsubject,newproperty,nodenew ) ;	
+		mObfuscated.add(stmtnew );
+		
+
+		if (targetFilename.equals("")) {mObfuscated.write(System.out,fileSynatx);}
 		else {
 			try {
-				String fileFormat = "TTL";
-				if(args.length>2) fileFormat =args[2];
-				mObfuscated.write(new FileOutputStream(args[1]),fileFormat);
+				mObfuscated.write(new FileOutputStream(targetFilename),fileSynatx);
 			}catch(Exception ex) {
 				System.out.println(ex);
 			}
