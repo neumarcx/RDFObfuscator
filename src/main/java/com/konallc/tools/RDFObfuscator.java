@@ -37,6 +37,10 @@ public class RDFObfuscator {
 			System.exit(0); 			
 		}
 		
+		Model mObfuscated = ModelFactory.createDefaultModel();
+		boolean obfuscateFull = false;
+
+		
 		Map<String, String> argsMap = new HashMap<>();
 		for (String arg: args) {
 		    String[] options = arg.split("=");
@@ -49,6 +53,7 @@ public class RDFObfuscator {
 		
 		if(argsMap.containsKey("urlStringBase")) {
 			urlStringBase = argsMap.get("urlStringBase");
+			mObfuscated.setNsPrefix("ex", urlStringBase);
 		}else {
 			urlStringBase = "";
 		}
@@ -73,10 +78,7 @@ public class RDFObfuscator {
 			System.out.println(ex.getMessage());
 		}
 		
-		Model mObfuscated = ModelFactory.createDefaultModel();
 		
-		boolean obfuscateFull = false;
-
 		Iterator<Statement> iter = m.listStatements();
 		while (iter.hasNext()) {			
 			Statement stmt = iter.next();
@@ -117,7 +119,7 @@ public class RDFObfuscator {
 		
 		Statement  stmtnew = mObfuscated.createStatement(newsubject,newproperty,nodenew ) ;	
 		mObfuscated.add(stmtnew );
-		
+		}
 
 		if (targetFilename.equals("")) {mObfuscated.write(System.out,fileSynatx);}
 		else {
@@ -127,7 +129,6 @@ public class RDFObfuscator {
 				System.out.println(ex);
 			}
 		}
-	}
   }
 	
 	public static String obfuscate(String strOb) {
