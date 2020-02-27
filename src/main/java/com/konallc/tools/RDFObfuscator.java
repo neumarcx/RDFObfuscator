@@ -7,6 +7,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -26,8 +27,11 @@ public class RDFObfuscator {
 	static String urlStringBase;
 	static String targetFilename;
 	static String fileSynatx;
+	static char first;
 	
 	public static void main(String[] args) {
+		
+		first = ((char)(new Random().nextInt(26)+'a'));
 					
 		if (args.length < 1) { 
 			System.err.println("Not enough arguments received.\n"+"usage: RDFObfuscator InputFile OutputFile Fileformat. examples:\n"
@@ -38,6 +42,8 @@ public class RDFObfuscator {
 		}
 		
 		Model mObfuscated = ModelFactory.createDefaultModel();
+
+		//obfucate well-known URIS too
 		boolean obfuscateFull = false;
 
 		
@@ -146,6 +152,6 @@ public class RDFObfuscator {
         {
             e.printStackTrace();
         }
-        return strbuilder.toString();
+        return first+strbuilder.toString();
 	}
 }
