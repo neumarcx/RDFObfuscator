@@ -43,7 +43,7 @@ public class RDFObfuscator {
 		
 		Model mObfuscated = ModelFactory.createDefaultModel();
 
-		//obfucate well-known URIS too
+		//obfucate well-known URIS as well
 		boolean obfuscateFull = false;
 
 		
